@@ -10,6 +10,15 @@ from datetime import datetime
 FEISHU_APP_TOKEN = "Fgv2wICOMiCnl9kClcgcRkvSnkh"  # 你的多维表格 Token
 FEISHU_TABLE_ID = "tblsp2CB2ljwGXY7&view=vewRNwgk1o" # [需填入] 浏览器地址栏 table= 后面的部分
 LARK_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/8f4888a8-0915-45ae-9b7b-00ac7c8cfb89" # [需填入] 你的飞书群机器人Webhook
+
+
+# === 模拟业务逻辑：基于文档的话术库 ===
+KNOWLEDGE_BASE = {
+    "问界M7": "重点强调智己LS6的‘全画幅数字驾舱’与‘声纹分离技术’，对比M7的内饰风格，突显LS6的年轻化与科技感。利用FAB法则：Feature-一体式屏，Advantage-视野无盲区，Benefit-驾驶更安全。",
+    "理想L6": "对标其智驾方案。智己LS6全系配备激光雷达+英伟达Orin X芯片，强调‘城市NOA’的开通速度与算法领先性，而不只是‘沙发大电视’。",
+    "价格异议": "执行《售前路径》中的‘风险逆转’逻辑：告知目前的金融贴息政策及‘保价协议’，拆解每日用车成本仅需一杯咖啡钱。"
+}
+
 # === 新增：挽回计划逻辑库 ===
 def get_rescue_mission(competitor):
     return {
@@ -21,14 +30,7 @@ def get_rescue_mission(competitor):
         ],
         "script": f"“王先生，关于您看的{competitor}，我帮您做了深度对比，LS6在底盘安全上领先一个代际...”"
     }
-
-# === 模拟业务逻辑：基于文档的话术库 ===
-KNOWLEDGE_BASE = {
-    "问界M7": "重点强调智己LS6的‘全画幅数字驾舱’与‘声纹分离技术’，对比M7的内饰风格，突显LS6的年轻化与科技感。利用FAB法则：Feature-一体式屏，Advantage-视野无盲区，Benefit-驾驶更安全。",
-    "理想L6": "对标其智驾方案。智己LS6全系配备激光雷达+英伟达Orin X芯片，强调‘城市NOA’的开通速度与算法领先性，而不只是‘沙发大电视’。",
-    "价格异议": "执行《售前路径》中的‘风险逆转’逻辑：告知目前的金融贴息政策及‘保价协议’，拆解每日用车成本仅需一杯咖啡钱。"
-}
-
+    
 # === 核心函数：发送飞书卡片 ===
 def send_feishu_card(data):
     headers = {"Content-Type": "application/json"}
@@ -82,7 +84,7 @@ if st.button("使用模拟 ASR 样本进行测试") or uploaded_file:
         st.write("正在检索《竞品分析》及《售前路径》...")
         status.update(label="分析完成！", state="complete", expanded=False)
 
-# 2. 结果分析展示
+    # 2. 结果分析展示
     res_data = {
         "pain_point": "客户存在价格异议，且正在对比竞品问界M7的优惠力度。",
         "competitor": "问界M7",
@@ -114,4 +116,4 @@ mock_data = {
     "原因": ["竞品拦截"],
     "状态": ["待抢救"]
 }
-st.table(mock_data))
+st.table(mock_data)

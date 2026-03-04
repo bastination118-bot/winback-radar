@@ -1,117 +1,116 @@
 import streamlit as st
 st.write("Hello! I am WinBack-Radar.") # 这一句是用来测试网页是否活着的
 import streamlit as st
-import time
 import requests
+import json
+import time
 from datetime import datetime
 
-# === 1. 基础配置 ===
-# 请手动填入你的 Webhook，演示前确认包含关键词“战败”
-LARK_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/xxxx" 
-BITABLE_INFO = {
-    "app_token": "Fgv2wICOMiCnl9kClcgcRkvSnkh",
-    "table_id": "tblsp2CB2ljwGXY7"
-}
-
-# === 2. 核心逻辑：执行路径生成器 ===
-def get_rescue_plan(competitor):
+# === 基础配置 ===
+FEISHU_APP_TOKEN = "Fgv2wICOMiCnl9kClcgcRkvSnkh"  # 你的多维表格 Token
+FEISHU_TABLE_ID = "tblsp2CB2ljwGXY7&view=vewRNwgk1o" # [需填入] 浏览器地址栏 table= 后面的部分
+LARK_WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/8f4888a8-0915-45ae-9b7b-00ac7c8cfb89" # [需填入] 你的飞书群机器人Webhook
+# === 新增：挽回计划逻辑库 ===
+def get_rescue_mission(competitor):
     return {
-        "歸因": f"遭竞品【{competitor}】价格策略拦截",
-        "路径": [
-            {"阶段": "1. 立即响应", "行动": "30分钟内由内训师陪同销售回访，确认客户对竞品的真实犹豫点。"},
-            {"阶段": "2. 价值重塑", "行动": f"发送智己LS6对比{competitor}的‘全系标配激光雷达’差异表，突显智驾代差。"},
-            {"阶段": "3. 诱饵锁定", "行动": "申请专项‘对比试驾礼’，以5000元限时补贴为由邀约二次返店。"}
+        "title": f"【紧急】针对{competitor}的战败挽回任务",
+        "steps": [
+            f"1. **立即响应**：30分钟内由内训师陪同销售拨打挽回电话，确认客户对{competitor}的犹豫点。",
+            "2. **价值重塑**：发送智己LS6对比视频，强调智驾全系标配，而竞品需选装。",
+            "3. **邀约返店**：告知‘战败客户专项补贴’仅剩3名，锁定二次到店意向。"
         ],
-        "话术": f"“王先生，关于您下午看的{competitor}，我刚才帮您做了对比，LS6在智驾算法上领先一个代际，这关乎长期安全...”"
+        "script": f"“王先生，关于您看的{competitor}，我帮您做了深度对比，LS6在底盘安全上领先一个代际...”"
     }
 
-# === 3. UI 页面设计 ===
-st.set_page_config(page_title="WinBack-Radar 3.0", layout="wide")
+# === 模拟业务逻辑：基于文档的话术库 ===
+KNOWLEDGE_BASE = {
+    "问界M7": "重点强调智己LS6的‘全画幅数字驾舱’与‘声纹分离技术’，对比M7的内饰风格，突显LS6的年轻化与科技感。利用FAB法则：Feature-一体式屏，Advantage-视野无盲区，Benefit-驾驶更安全。",
+    "理想L6": "对标其智驾方案。智己LS6全系配备激光雷达+英伟达Orin X芯片，强调‘城市NOA’的开通速度与算法领先性，而不只是‘沙发大电视’。",
+    "价格异议": "执行《售前路径》中的‘风险逆转’逻辑：告知目前的金融贴息政策及‘保价协议’，拆解每日用车成本仅需一杯咖啡钱。"
+}
 
-# 自定义 CSS 让页面更专业
-st.markdown("""
-    <style>
-    .main { background-color: #f5f7f9; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    </style>
-    """, unsafe_allow_stdio=True)
+# === 核心函数：发送飞书卡片 ===
+def send_feishu_card(data):
+    headers = {"Content-Type": "application/json"}
+    card_content = {
+        "msg_type": "interactive",
+        "card": {
+            "header": {"title": {"tag": "plain_text", "content": "🚨 战败风险实时预警"}, "template": "red"},
+            "elements": [
+                {"tag": "div", "text": {"tag": "lark_md", "content": f"**客户痛点：** {data['pain_point']}\n**对应竞品：** {data['competitor']}"}},
+                {"tag": "hr"},
+                {"tag": "div", "text": {"tag": "lark_md", "content": f"**💡 抢救话术建议：**\n{data['script']}"}},
+                {"tag": "action", "actions": [{"tag": "button", "text": {"tag": "plain_text", "content": "立即致电客户"}, "type": "primary"}]}
+            ]
+        }
+    }
+    # 模拟发送（若未配置Webhook则打印）
+    if "xxxx" not in LARK_WEBHOOK_URL:
+        return requests.post(LARK_WEBHOOK_URL, json=card_content)
+    return None
 
-# 顶部标题栏
-st.title("🛡️ 战败雷达 (WinBack-Radar) 模拟器 v3.0")
-st.caption("基于飞书 OpenClaw & 智己销售赋能文档 | 已开启数据脱敏模式")
+# === 核心函数：同步至多维表格 ===
+def sync_to_bitable(data):
+    # 此处逻辑需配合飞书自建应用的 tenant_access_token 调用，演示版做逻辑模拟
+    st.toast(f"✅ 数据已同步至多维表格: {FEISHU_APP_TOKEN}")
 
-# 侧边栏配置
+# === Streamlit 网页设计 ===
+st.set_page_config(page_title="WinBack-Radar 模拟器", layout="centered")
+
+st.title("🛡️ 战败雷达 (WinBack-Radar) 模拟器")
+st.caption("基于飞书 OpenClaw & 智己 LS6 销售赋能文档驱动")
+
 with st.sidebar:
-    st.header("⚙️ 自动化配置")
-    sync_lark = st.toggle("同步触发飞书任务卡片", value=True)
-    sync_bitable = st.toggle("写入多维表格资产", value=True)
-    st.divider()
-    st.info("💡 3.11 演示模式：点击下方按钮模拟工牌音频录入。")
+    st.header("⚙️ 推送配置")
+    sync_lark = st.toggle("同步触发飞书卡片", value=True)
+    sync_bitable = st.toggle("自动写入多维表格", value=True)
+    st.info("配置生效中：3.11 演示模式已开启")
 
-# 第一行：数据输入与审计状态
-col_input, col_status = st.columns([1, 2])
+# 1. 上传区
+uploaded_file = st.file_uploader("上传智慧工牌录音文件 (.mp3, .wav)", type=["mp3", "wav"])
 
-with col_input:
-    st.subheader("📥 音频输入")
-    uploaded_file = st.file_uploader("上传工牌录音 (.mp3, .wav)", type=["mp3", "wav"])
-    test_btn = st.button("🚀 使用模拟样本进行审计", use_container_width=True)
-
-if test_btn or uploaded_file:
-    with col_status:
-        with st.status("🔍 AI 正在进行语义审计...", expanded=True) as status:
-            time.sleep(1)
-            st.write("已提取关键词：[问界M7], [配置对比], [价格犹豫]")
-            time.sleep(1)
-            st.write("正在检索《竞品分析》及《售前路径》...")
-            time.sleep(1)
-            status.update(label="审计完成！已生成挽回任务", state="complete")
-
-    st.divider()
-
-    # 第二行：仪表盘数据展示
-    plan = get_rescue_plan("问界M7")
+# 模拟按钮（防止没有录音文件时的测试）
+if st.button("使用模拟 ASR 样本进行测试") or uploaded_file:
     
-    m_col1, m_col2, m_col3 = st.columns(3)
-    with m_col1:
-        st.metric("风险等级", "高危 (92%)", delta="需立即干预")
-    with m_col2:
-        st.metric("战败归因", "竞品拦截", delta="价格/配置异议", delta_color="inverse")
-    with m_col3:
-        st.metric("建议响应时间", "30分钟内")
+    # 模拟 ASR 识别过程
+    with st.status("🔍 AI 正在进行语义审计...", expanded=True) as status:
+        time.sleep(1)
+        st.write("转写文本：*‘你们的智己LS6不错，但我下午约了问界M7的试驾，那边优惠好像更大...’*")
+        time.sleep(1)
+        st.write("检测到敏感词：[问界M7], [优惠], [下午约了]")
+        time.sleep(1)
+        st.write("正在检索《竞品分析》及《售前路径》...")
+        status.update(label="分析完成！", state="complete", expanded=False)
 
-    # 第三行：核心挽回任务书
-    st.subheader("📋 战败挽回执行任务书")
+    # 2. 结果分析展示
+    res_data = {
+        "pain_point": "客户存在价格异议，且正在对比竞品问界M7。",
+        "competitor": "问界M7"
+    }
+    mission = get_rescue_mission(res_data["competitor"])
+
+    st.subheader("📊 战败挽回执行任务书")
     
+    # 仪表盘
+    col_a, col_b = st.columns(2)
+    col_a.metric("风险等级", "高危 (92%)", delta="需立即干预")
+    col_b.metric("战败归因", "竞品拦截")
+
+    # 执行路径与话术
     t_col1, t_col2 = st.columns([1.5, 1])
-    
     with t_col1:
-        st.write("#### **第一阶段：执行路径**")
-        for item in plan['path']:
-            with st.expander(f"📌 {item['阶段']}", expanded=True):
-                st.write(item['行动'])
+        st.markdown("#### **执行路径**")
+        for s in mission["steps"]:
+            st.write(s)
     
     with t_col2:
-        st.write("#### **金牌挽回话术**")
-        st.info(plan['话术'])
-        
-        if st.button("✅ 确认生成并同步任务"):
-            with st.spinner("正在同步至飞书生态..."):
-                time.sleep(1.5)
-                # 提示成功
-                st.success("🎉 同步成功！")
-                st.toast(f"已存入 Bitable: {BITABLE_INFO['table_id']}")
-                st.balloons()
-                
-                # 如果填了 Webhook，这里可以加入发送逻辑
-                # requests.post(LARK_WEBHOOK, json=...)
+        st.markdown("#### **建议话术**")
+        st.info(mission["script"])
 
-# 底部数据看板预览
-st.divider()
-st.subheader("📈 数据资产看板 (模拟同步效果)")
-mock_data = {
-    "时间": [datetime.now().strftime("%H:%M")],
-    "销售员": ["销售 A (脱敏)"],
-    "关联竞品": ["问界M7"],
-    "状态": ["已下派任务"]
-}
+    # 触发按钮
+    if st.button("✅ 确认生成任务并同步飞书", use_container_width=True):
+        with st.spinner("正在同步数据..."):
+            time.sleep(1.5)
+            st.success("任务已同步至店长端及多维表格！")
+            st.balloons()
 st.table(mock_data)

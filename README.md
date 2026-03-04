@@ -1,8 +1,10 @@
-项目名称：WinBack-Radar (开源 AI 战败抢救器)
-一句话介绍： 一款基于 OpenClaw 部署的“救火级”AI 插件。它通过监听智慧工牌录音流，在客户离店后的 15 分钟内自动识别流失风险并生成抢救任务，帮助企业从 CRM 战败库中“抢回”百万营收。
-核心功能：
-- 毫秒级 ASR 审计：支持多种智慧工牌数据流接入。
-- 深度归因算法：内置汽车、医美行业专属战败判定模型。
-- 飞书/Lark 生态闭环：一键触发审批、任务分发、数据落库。
-- PaaS API 支持：标准 RESTful 接口，30 分钟完成与现有 CRM 对接。
-为什么开发者需要它？ 传统的 CRM 是死板的“记录器”，而 WinBack-Radar 是智能的“反应堆”。它是目前市场上最垂直、商业逻辑最闭环的 AI 插件 Demo，可直接用于商业外包或作为企业内部效能工具。
+WinBack-Radar (Open-Source AI Customer Loss Rescue Tool)
+One-Sentence Introduction:
+A "fire-fighting level" AI plugin deployed based on OpenClaw. By monitoring the audio stream from smart work badges, it automatically identifies customer churn risk and generates rescue tasks within 15 minutes after customers leave the store, helping enterprises "win back" millions in revenue from the CRM lost customer database.
+Core Features:
+Millisecond-level ASR auditing: Supports access to multiple smart work badge data streams.
+In-depth attribution algorithm: Built-in exclusive customer loss judgment models for automotive and medical aesthetics industries.
+Feishu/Lark ecosystem closed-loop: One-click approval triggering, task distribution, and data storage.
+PaaS API support: Standard RESTful interface, completing integration with existing CRM systems in 30 minutes.
+Why Do Developers Need It?
+Traditional CRM is a rigid "recorder", while WinBack-Radar is an intelligent "reactor". It is the most vertical AI plugin Demo with the most complete commercial logic on the market, which can be directly used for commercial outsourcing or as an internal enterprise efficiency tool.

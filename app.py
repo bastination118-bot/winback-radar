@@ -82,35 +82,36 @@ if st.button("使用模拟 ASR 样本进行测试") or uploaded_file:
         st.write("正在检索《竞品分析》及《售前路径》...")
         status.update(label="分析完成！", state="complete", expanded=False)
 
-    # 2. 结果分析展示
+# 2. 结果分析展示
     res_data = {
-        "pain_point": "客户存在价格异议，且正在对比竞品问界M7。",
-        "competitor": "问界M7"
+        "pain_point": "客户存在价格异议，且正在对比竞品问界M7的优惠力度。",
+        "competitor": "问界M7",
+        "script": KNOWLEDGE_BASE["问界M7"]
     }
-    mission = get_rescue_mission(res_data["competitor"])
 
-    st.subheader("📊 战败挽回执行任务书")
+    st.subheader("📊 AI 分析报告")
+    col1, col2 = st.columns(2)
+    col1.metric("风险等级", "高危 (85%)", delta="需立即干预")
+    col2.metric("战败归因", "竞品拦截")
+
+    st.info(f"**建议挽回话术：**\n\n{res_data['script']}")
+
+    # 3. 触发联动
+    if sync_lark:
+        send_feishu_card(res_data)
+        st.success("飞书卡片已推送至店长端！")
     
-    # 仪表盘
-    col_a, col_b = st.columns(2)
-    col_a.metric("风险等级", "高危 (92%)", delta="需立即干预")
-    col_b.metric("战败归因", "竞品拦截")
+    if sync_bitable:
+        sync_to_bitable(res_data)
 
-    # 执行路径与话术
-    t_col1, t_col2 = st.columns([1.5, 1])
-    with t_col1:
-        st.markdown("#### **执行路径**")
-        for s in mission["steps"]:
-            st.write(s)
-    
-    with t_col2:
-        st.markdown("#### **建议话术**")
-        st.info(mission["script"])
-
-    # 触发按钮
-    if st.button("✅ 确认生成任务并同步飞书", use_container_width=True):
-        with st.spinner("正在同步数据..."):
-            time.sleep(1.5)
-            st.success("任务已同步至店长端及多维表格！")
-            st.balloons()
-st.table(mock_data)
+# === 底部看板预览 ===
+st.divider()
+st.subheader("📈 数据资产看板 (Bitable 实时同步)")
+st.caption("最近 5 条抢救任务记录")
+mock_data = {
+    "时间": [datetime.now().strftime("%H:%M:%S")],
+    "销售": ["张三"],
+    "原因": ["竞品拦截"],
+    "状态": ["待抢救"]
+}
+st.table(mock_data))

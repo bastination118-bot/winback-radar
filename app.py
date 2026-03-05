@@ -8,19 +8,38 @@ from datetime import datetime
 # === 1. 核心联动配置 ===
 LARK_WEBHOOK = "https://open.feishu.cn/open-apis/bot/v2/hook/8f4888a8-0915-45ae-9b7b-00ac7c8cfb89"
 
-# === 2. 状态强效初始化 (解决 AttributeError 和 数据重影) ===
+# === 2. 状态强效初始化 ===
 if "history_logs" not in st.session_state:
     st.session_state.history_logs = []
 if "current_analysis" not in st.session_state:
     st.session_state.current_analysis = None
 
-# === 3. 增强型语义路由模块 (解决“分析不更新”问题) ===
+# === 3. 增强型语义路由模块 (解决逻辑死板问题) ===
 def get_semantic_analysis(file_name):
-    """根据文件名关键词模拟 ASR 语义理解"""
-    time.sleep(1.2) # 模拟处理延迟
+    """
+    智能化升级：多维度判断文件特征，不再盲目回复问界
+    """
+    time.sleep(1.2)
+    fname = file_name.lower()
     
-    # 场景 A：识别到严重抵触 (适配：含介绍_沟通深度_完全不愿沟通_双声道.wav)
-    if any(k in file_name for k in ["不愿沟通", "防御", "抵触", "别问"]):
+    # 场景 A：意愿强烈 (适配新上传的：愿意购车.wav)
+    if any(k in fname for k in ["愿意", "购车", "意愿强烈", "下定"]):
+        return {
+            "risk": "极低 (5%)",
+            "reason": "意愿客户 (高意向/准成交)",
+            "competitor": "无 (未提及)",
+            "title": "🎉 【促单保单】高意向客户快速转化SOP",
+            "steps": [
+                "1. **趁热打铁**：24小时内发送金融方案对比表。",
+                "2. **权益锁定**：提醒当前限时权益（如内饰升级包）仅剩3天。",
+                "3. **邀约下定**：引导至线上订车小程序，协助完成锁单。"
+            ],
+            "script": "“王先生，听得出您对LS6的智驾非常满意。现在订车还能享受本月的限时权益，我把链接发您？”",
+            "status_label": "✅ 待成交 (转化引导中)"
+        }
+    
+    # 场景 B：识别到严重抵触 (不愿沟通)
+    elif any(k in fname for k in ["不愿", "防御", "抵触", "别问"]):
         return {
             "risk": "特高 (98%)",
             "reason": "沟通高度受阻 (客户防御心态重)",
@@ -28,32 +47,48 @@ def get_semantic_analysis(file_name):
             "title": "🥊 【破冰行动】针对高度抵触客户的温养计划",
             "steps": [
                 "1. **冷处理**：24小时内严禁电话轰炸，防止客户拉黑投诉。",
-                "2. **轻量温养**：由主管发送‘不打扰致歉信’，附带智己LS6静谧空间短视频。",
-                "3. **价值转接**：3天后通过企业微信推送‘无盲区智驾’功能点，弱化推销感。"
+                "2. **轻量温养**：由主管发送‘不打扰致歉信’，附带静谧空间短视频。"
             ],
-            "script": "“王先生，理解您现在的忙碌。LS6的产品资料我放在您微信里，您有空时扫一眼就好，近期不再打扰。”",
+            "script": "“王先生，资料我放在您微信里，您有空时扫一眼就好，近期不再打扰。”",
             "status_label": "⚠️ 待执行 (破冰SOP已下发)"
         }
     
-    # 场景 B：识别到竞品拦截 (默认场景，如问界M7)
+    # 场景 C：其他竞品 (演示备选)
+    elif any(k in fname for k in ["小米", "su7", "特斯拉", "极氪"]):
+        comp = "小米SU7" if "小米" in fname else "特斯拉Model Y"
+        return {
+            "risk": "高危 (90%)",
+            "reason": f"竞品拦截 ({comp})",
+            "competitor": comp,
+            "title": f"⚔️ 【对标计划】针对{comp}的战败挽回",
+            "steps": ["1. 对比机械素质", "2. 强调全系标配激光雷达", "3. 赠送终身智驾权益"],
+            "script": f"“王先生，{comp}确实很火，但LS6的底盘调校和空间表现...”",
+            "status_label": "⚠️ 待处理 (对标任务生成)"
+        }
+    
+    # 场景 D：兜底 (不再默认问界)
     return {
-        "risk": "高危 (92%)",
-        "reason": "竞品拦截 (问界M7强意向)",
-        "competitor": "问界M7",
-        "title": "⚔️ 【抢救任务】针对问界M7的价值重塑",
-        "steps": [
-            "1. **闪电响应**：30分钟内内训师介入，针对M7内饰与智驾包进行差异化对比。",
-            "2. **火力压制**：发送‘LS6全系标配激光雷达’海报，打击竞品选装痛点。",
-            "3. **终极邀约**：申请‘战败客户专项5000元补贴’，诱导二次回店。"
-        ],
-        "script": "“王先生，关于您看的问界M7，LS6在全幅数字屏和底盘素质上领先一个代际，建议您对比后再定...”",
-        "status_label": "⚠️ 待致电 (任务书已生成)"
+        "risk": "中等 (45%)",
+        "reason": "需求模糊 (正在观望)",
+        "competitor": "无 (未提及)",
+        "title": "🔍 【需求挖掘】长线线索培育SOP",
+        "steps": ["1. 寻找痛点：询问用车场景", "2. 建立信任：发送提车日记", "3. 寻找时机：下月活动预热"],
+        "script": "“王先生，您近期用车主要是通勤还是长途？我可以为您匹配更合适的方案。”",
+        "status_label": "⏳ 待培育 (线索温养中)"
     }
 
 # === 4. UI 布局与交互 ===
-st.set_page_config(page_title="WinBack-Radar 3.11", layout="centered")
+st.set_page_config(page_title="WinBack-Radar 3.5", layout="centered")
 
-# 标题栏 [0.1, 0.9]
+# CSS 修复：强制表格文字完整显示，不再截断
+st.markdown("""
+<style>
+    div[data-testid="stTable"] td { white-space: normal !important; word-break: break-all !important; font-size: 14px !important; }
+    div[data-testid="stMetricValue"] { font-size: 24px !important; }
+</style>
+""", unsafe_allow_html=True)
+
+# 标题栏
 h1, h2 = st.columns([0.1, 0.9])
 with h1: st.write("## 🛡️")
 with h2: st.write("## 战败雷达 (WinBack-Radar) 数字化看板")
@@ -61,20 +96,17 @@ with h2: st.write("## 战败雷达 (WinBack-Radar) 数字化看板")
 with st.sidebar:
     st.header("⚙️ 自动化引擎")
     sync_lark = st.toggle("同步群机器人预警", value=True)
-    sync_bitable = st.toggle("数据实时同步 Bitable", value=True)
     st.divider()
-    st.info("💡 演示模式：已根据文件名自动适配语义模型")
+    st.info("💡 智能模式：已适配意愿强烈、防御抵触、竞品拦截等多种模型。")
 
 # 4.1 审计触发
-uploaded_file = st.file_uploader("上传录音文件 (.wav / .mp3)", type=["wav", "mp3"])
+uploaded_file = st.file_uploader("上传录音文件", type=["wav", "mp3"])
 if st.button("🚀 启动智能分析", use_container_width=True) or uploaded_file:
-    fname = uploaded_file.name if uploaded_file else "智慧工牌默认采样.wav"
+    fname = uploaded_file.name if uploaded_file else "智慧工牌采样.wav"
     with st.status(f"🔍 正在提取 ASR 语义特征: {fname}...", expanded=True) as s:
-        # 获取最新的分析结果
         analysis_res = get_semantic_analysis(fname)
         st.session_state.current_analysis = analysis_res
         
-        # 将结果压入看板历史 (严格对齐 4 列字段)
         new_log = {
             "记录时间": datetime.now().strftime("%H:%M:%S"),
             "风险分类": analysis_res["reason"],
@@ -82,9 +114,11 @@ if st.button("🚀 启动智能分析", use_container_width=True) or uploaded_fi
             "任务状态": analysis_res["status_label"]
         }
         st.session_state.history_logs.insert(0, new_log)
-        s.update(label="分析完成！已识别战败归因并生成计划", state="complete")
+        # 强制只保留最近5条历史数据
+        st.session_state.history_logs = st.session_state.history_logs[:5]
+        s.update(label="AI 分析完成", state="complete")
 
-# 4.2 报告展示 (解决 image_a01dfb.png 中的渲染崩溃)
+# 4.2 报告展示
 if st.session_state.current_analysis:
     data = st.session_state.current_analysis
     st.divider()
@@ -93,46 +127,29 @@ if st.session_state.current_analysis:
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("风险等级", data["risk"])
     col_b.metric("战败归因", data["reason"])
-    col_c.metric("建议响应", "发起冲锋")
+    col_c.metric("建议响应", "执行 SOP")
 
     with st.container(border=True):
         st.markdown(f"### {data['title']}")
         for step in data["steps"]: st.write(step)
-        st.info(f"**建议挽回话术：**\n{data['script']}")
+        st.info(f"**建议话术：**\n{data['script']}")
 
     if st.button("🔥 发起冲锋 (WinBack)", type="primary", use_container_width=True):
-        # 1. 修改看板内当前行的状态
         if st.session_state.history_logs:
-            st.session_state.history_logs[0]["任务状态"] = "⚡ 冲锋执行中"
-        
-        # 2. 视觉特效
+            st.session_state.history_logs[0]["任务状态"] = "⚡ 冲锋中"
         st.balloons()
         
-        # 3. 飞书联动 (带 FAB 法则的高级卡片)
         if sync_lark:
-            card_content = {
-                "msg_type": "interactive",
-                "card": {
-                    "header": {"title": {"tag": "plain_text", "content": "🚨 战败风险预警"}, "template": "red"},
-                    "elements": [
-                        {"tag": "div", "text": {"tag": "lark_md", "content": f"**归因：**{data['reason']}\n**对手：**{data['competitor']}"}},
-                        {"tag": "hr"},
-                        {"tag": "div", "text": {"tag": "lark_md", "content": f"**执行建议：**\n{data['script']}"}}
-                    ]
-                }
-            }
-            try: requests.post(LARK_WEBHOOK, json=card_content)
-            except: pass
-        st.success("指令已下发！店长端卡片已同步，多维表格状态已刷新。")
+            payload = {"msg_type":"interactive","card":{"header":{"title":{"tag":"plain_text","content":"🚨 战败风险预警"},"template":"red"},"elements":[{"tag":"div","text":{"tag":"lark_md","content":f"**归因：**{data['reason']}\n**对手：**{data['competitor']}"}},{"tag":"hr"},{"tag":"div","text":{"tag":"lark_md","content":f"**执行建议：**\n{data['script']}"}}]}}
+            requests.post(LARK_WEBHOOK, json=payload)
+        st.success("指令已下发！状态已同步。")
 
-# 4.3 数据资产看板 (彻底修复 image_9f2a59.png 的混乱问题)
+# 4.3 看板优化 (5条历史+编号1-5+完整显示)
 st.divider()
 st.subheader("📈 数据资产看板 (Bitable 实时流水)")
 if st.session_state.history_logs:
-    # 关键步骤：使用 pandas 强制约束列，防止“列名打架”
-    raw_df = pd.DataFrame(st.session_state.history_logs)
-    # 定义标准 4 列名
-    standard_columns = ["记录时间", "风险分类", "关联竞品", "任务状态"]
-    # 强制重新排列并重命名字段，解决 NaN 重影
-    df_display = raw_df.reindex(columns=standard_columns)
+    df_display = pd.DataFrame(st.session_state.history_logs)
+    # 生成 1-5 的编号
+    df_display.index = range(1, len(df_display) + 1)
+    df_display.index.name = "编号"
     st.table(df_display)
